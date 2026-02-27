@@ -1,0 +1,333 @@
+<script setup>
+import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { Link, usePage } from '@inertiajs/vue3';
+
+import 'bootstrap/dist/css/bootstrap.min.css';
+import '../../css/admin.css';
+
+const sidebarOpen = ref(false);
+const userDropdownOpen = ref(false);
+const userDropdownEl = ref(null);
+
+const page = usePage();
+const user = computed(() => page.props.auth?.user ?? {});
+
+/** Which nav panel to show: driven by current route. Home = dashboard only, Pencil = content only, SEO = seo.*, Gear = account (profile, users, roles). */
+const activeNavSection = computed(() => {
+  const name = route().current() || '';
+  if (name === 'dashboard') return 'dashboard';
+  if (name.startsWith('content-manager') || name.startsWith('pages.') || name.startsWith('blogs.')) return 'content';
+  if (name.startsWith('seo.')) return 'seo';
+  if (name.startsWith('profile') || name.startsWith('users.') || name.startsWith('roles.')) return 'account';
+  if (name.startsWith('media')) return 'media';
+  return 'dashboard';
+});
+
+/** SEO modules for second sidebar (slug => display name). */
+const seoModules = [
+  { slug: 'meta-manager', name: 'Meta Manager' },
+  { slug: 'url-redirects', name: 'URL & Redirect Manager' },
+  { slug: 'sitemap', name: 'Sitemap Manager' },
+  { slug: 'robots', name: 'Robots.txt Manager' },
+  { slug: 'social-sharing', name: 'Social Sharing (Open Graph)' },
+  { slug: 'schema-markup', name: 'Schema Markup Manager' },
+  { slug: 'image-seo', name: 'Image SEO Manager' },
+  { slug: 'performance', name: 'Performance & Speed' },
+  { slug: 'indexing', name: 'Indexing Controls' },
+  { slug: 'analytics', name: 'SEO Analytics & Reports' },
+  { slug: 'content-optimization', name: 'Content Optimization Tools' },
+  { slug: 'broken-links', name: 'Broken Link & Error Monitor' },
+];
+
+/** Which SEO sub-module is active: Meta Manager list and create/edit both count as "meta-manager". */
+const activeSeoModule = computed(() => {
+  const name = route().current() || '';
+  if (name === 'seo.meta-manager' || name === 'seo.meta-manager.create') return 'meta-manager';
+  const match = name.match(/^seo\.([a-z0-9-]+)$/);
+  return match ? match[1] : '';
+});
+
+function can(permission) {
+  const perms = page.props.auth?.user?.permissions;
+  if (!perms) return false;
+  if (perms.includes('*')) return true;
+  return perms.includes(permission);
+}
+
+function toggleSidebar() {
+  sidebarOpen.value = !sidebarOpen.value;
+}
+
+function closeSidebar() {
+  sidebarOpen.value = false;
+}
+
+function toggleUserDropdown() {
+  userDropdownOpen.value = !userDropdownOpen.value;
+}
+
+function closeUserDropdown() {
+  userDropdownOpen.value = false;
+}
+
+function onDocumentClick(e) {
+  if (userDropdownOpen.value && userDropdownEl.value && !userDropdownEl.value.contains(e.target)) {
+    closeUserDropdown();
+  }
+}
+
+onMounted(() => document.addEventListener('click', onDocumentClick));
+onUnmounted(() => document.removeEventListener('click', onDocumentClick));
+</script>
+
+<template>
+  <div class="admin-wrap">
+    <div
+      class="admin-sidebar-overlay"
+      :class="{ 'is-open': sidebarOpen }"
+      @click="closeSidebar"
+      aria-hidden="true"
+    />
+
+    <!-- Narrow icon sidebar (Strapi-style left bar) -->
+    <aside class="admin-icon-sidebar" :class="{ 'is-open': sidebarOpen }">
+      <Link :href="route('dashboard')" class="admin-icon-sidebar-logo" aria-label="Home">
+        <span class="admin-icon-sidebar-logo-inner">C</span>
+      </Link>
+      <nav class="admin-icon-sidebar-nav" aria-label="Main">
+        <Link
+          :href="route('dashboard')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'dashboard' }"
+          title="Dashboard"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+          </svg>
+        </Link>
+        <Link
+          :href="route('content-manager.index')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'content' }"
+          title="Content manager"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </Link>
+        <Link
+          :href="route('media.index')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'media' }"
+          title="Media library"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <polyline points="21 15 16 10 5 21" />
+          </svg>
+        </Link>
+        <Link
+          :href="route('seo.meta-manager')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'seo' }"
+          title="SEO"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10" />
+            <line x1="12" y1="20" x2="12" y2="4" />
+            <line x1="6" y1="20" x2="6" y2="14" />
+          </svg>
+        </Link>
+        <Link
+          :href="route('profile.edit')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'account' }"
+          title="Settings (Profile, Users, Roles)"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009.19 18a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+          </svg>
+        </Link>
+      </nav>
+      <div class="admin-icon-sidebar-footer">
+        <button
+          type="button"
+          class="admin-icon-sidebar-item admin-icon-sidebar-user"
+          :title="user.name"
+          @click="toggleUserDropdown"
+        >
+          <span class="admin-icon-sidebar-avatar">{{ (user.name || 'A').charAt(0).toUpperCase() }}</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Wider secondary sidebar: content depends on which icon is active -->
+    <aside class="admin-nav-sidebar" :class="{ 'is-open': sidebarOpen }">
+      <div class="admin-nav-sidebar-title">{{ activeNavSection === 'dashboard' ? 'Dashboard' : activeNavSection === 'content' ? 'Content manager' : activeNavSection === 'seo' ? 'SEO' : activeNavSection === 'account' ? 'Account' : 'Media library' }}</div>
+      <nav class="admin-nav-sidebar-nav">
+        <!-- Home icon: Dashboard only -->
+        <template v-if="activeNavSection === 'dashboard'">
+          <Link
+            :href="route('dashboard')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('dashboard') }"
+            @click="closeSidebar"
+          >
+            Dashboard
+          </Link>
+        </template>
+        <!-- Pencil icon: Content manager (Pages, Blogs) -->
+        <template v-else-if="activeNavSection === 'content'">
+          <Link
+            :href="route('content-manager.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.index') }"
+            @click="closeSidebar"
+          >
+            Content manager
+          </Link>
+          <Link
+            :href="route('pages.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': (route().current() || '').startsWith('pages.') }"
+            @click="closeSidebar"
+          >
+            Pages
+          </Link>
+          <Link
+            :href="route('blogs.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': (route().current() || '').startsWith('blogs.') }"
+            @click="closeSidebar"
+          >
+            Blogs
+          </Link>
+        </template>
+        <!-- Gear icon: Account (Profile, Users, Roles) -->
+        <template v-else-if="activeNavSection === 'account'">
+          <Link
+            :href="route('profile.edit')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('profile.edit') }"
+            @click="closeSidebar"
+          >
+            Profile
+          </Link>
+          <Link
+            v-if="can('users.view')"
+            :href="route('users.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': (route().current() || '').startsWith('users.') }"
+            @click="closeSidebar"
+          >
+            Users
+          </Link>
+          <Link
+            v-if="can('roles.view')"
+            :href="route('roles.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': (route().current() || '').startsWith('roles.') }"
+            @click="closeSidebar"
+          >
+            Roles
+          </Link>
+        </template>
+        <!-- Media icon: Media library only -->
+        <template v-else-if="activeNavSection === 'media'">
+          <Link
+            :href="route('media.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('media.index') }"
+            @click="closeSidebar"
+          >
+            Media library
+          </Link>
+        </template>
+        <!-- SEO icon: all 12 SEO modules -->
+        <template v-else-if="activeNavSection === 'seo'">
+          <Link
+            v-for="m in seoModules"
+            :key="m.slug"
+            :href="route('seo.' + m.slug)"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': m.slug === activeSeoModule }"
+            @click="closeSidebar"
+          >
+            {{ m.name }}
+          </Link>
+        </template>
+        <template v-else>
+          <Link
+            :href="route('dashboard')"
+            class="admin-nav-sidebar-link"
+            @click="closeSidebar"
+          >
+            Dashboard
+          </Link>
+        </template>
+      </nav>
+    </aside>
+
+    <div class="admin-main-wrap">
+      <header class="admin-header">
+        <div class="admin-header-left">
+          <button
+            type="button"
+            class="admin-header-menu-btn"
+            aria-label="Toggle menu"
+            @click="toggleSidebar"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+          <div v-if="$slots.header" class="admin-page-title">
+            <slot name="header" />
+          </div>
+          <div v-else class="admin-page-title">Dashboard</div>
+        </div>
+
+        <div class="admin-header-right">
+          <div class="admin-user-menu" ref="userDropdownEl">
+            <button
+              type="button"
+              class="admin-user-btn"
+              @click="toggleUserDropdown"
+              aria-haspopup="true"
+              :aria-expanded="userDropdownOpen"
+            >
+              <span>{{ user.name }}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            <div
+              v-show="userDropdownOpen"
+              class="admin-user-dropdown"
+            >
+              <Link :href="route('profile.edit')" @click="closeUserDropdown">Profile</Link>
+              <Link :href="route('logout')" method="post" as="button" @click="closeUserDropdown">
+                Log out
+              </Link>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main class="admin-content">
+        <slot />
+      </main>
+    </div>
+  </div>
+</template>
