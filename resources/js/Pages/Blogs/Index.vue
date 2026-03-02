@@ -45,6 +45,42 @@ async function destroy(b) {
     alert(msg);
   }
 }
+
+async function togglePublish(b) {
+  try {
+    const { data } = await window.axios.post(`/api/blogs/${b.id}/toggle-publish`);
+    const idx = blogs.value.findIndex((x) => x.id === b.id);
+    if (idx !== -1) {
+      blogs.value[idx].is_published = data.is_published;
+      if (data.visibility != null) blogs.value[idx].visibility = data.visibility;
+    }
+    successMessage.value = data.message || (data.is_published ? 'Blog published.' : 'Blog unpublished.');
+  } catch (e) {
+    const msg = e.response?.data?.message || 'Failed to update.';
+    alert(msg);
+  }
+}
+
+const visibilityOptions = [
+  { value: 'published', label: 'Published' },
+  { value: 'draft', label: 'Draft' },
+  { value: 'private', label: 'Private' },
+];
+
+async function changeVisibility(b, newVisibility) {
+  const prev = b.visibility;
+  b.visibility = newVisibility;
+  try {
+    const { data } = await window.axios.patch(`/api/blogs/${b.id}/visibility`, { visibility: newVisibility });
+    b.visibility = data.visibility;
+    b.is_published = data.is_published;
+    successMessage.value = data.message || 'Visibility updated.';
+  } catch (e) {
+    b.visibility = prev;
+    const msg = e.response?.data?.message || 'Failed to update visibility.';
+    alert(msg);
+  }
+}
 </script>
 
 <template>
@@ -98,6 +134,7 @@ async function destroy(b) {
               <th>Author</th>
               <th>Published</th>
               <th>Status</th>
+              <th>Visibility</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -117,6 +154,17 @@ async function destroy(b) {
                 >
                   {{ b.is_published ? 'Published' : 'Unpublished' }}
                 </button>
+              </td>
+              <td>
+                <select
+                  :value="b.visibility || 'draft'"
+                  class="form-select form-select-sm"
+                  style="max-width: 7rem;"
+                  aria-label="Visibility"
+                  @change="changeVisibility(b, $event.target.value)"
+                >
+                  <option v-for="opt in visibilityOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
               </td>
               <td>
                 <Link :href="route('blogs.edit', b.id)" class="admin-list-link">Edit</Link>

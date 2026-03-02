@@ -25,6 +25,16 @@ class BlogController extends Controller
             'user_id' => $blog->user_id,
             'author' => $blog->author ? ['id' => $blog->author->id, 'name' => $blog->author->name] : null,
             'is_published' => $blog->is_published,
+            'visibility' => $blog->visibility,
+            'meta_title' => $blog->meta_title,
+            'meta_description' => $blog->meta_description,
+            'canonical_url' => $blog->canonical_url,
+            'meta_robots' => $blog->meta_robots,
+            'og_title' => $blog->og_title,
+            'og_description' => $blog->og_description,
+            'og_image' => $blog->og_image,
+            'schema_type' => $blog->schema_type,
+            'schema_data' => $blog->schema_data,
             'created_at' => $blog->created_at->toIso8601String(),
         ];
     }
@@ -59,6 +69,13 @@ class BlogController extends Controller
             'content' => 'nullable|string',
             'published_at' => 'nullable|date',
             'is_published' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'canonical_url' => 'nullable|string|max:500',
+            'meta_robots' => 'nullable|string|max:50',
+            'og_title' => 'nullable|string|max:255',
+            'og_description' => 'nullable|string|max:500',
+            'og_image' => 'nullable|string|max:500',
         ]);
 
         $blog = Blog::create([
@@ -69,6 +86,14 @@ class BlogController extends Controller
             'published_at' => $request->published_at,
             'user_id' => $request->user()?->id,
             'is_published' => $request->boolean('is_published', false),
+            'visibility' => $request->boolean('is_published', false) ? Blog::VISIBILITY_PUBLISHED : Blog::VISIBILITY_DRAFT,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'canonical_url' => $request->canonical_url,
+            'meta_robots' => $request->meta_robots,
+            'og_title' => $request->og_title,
+            'og_description' => $request->og_description,
+            'og_image' => $request->og_image,
         ]);
 
         if (request()->is('api/*')) {
@@ -95,6 +120,13 @@ class BlogController extends Controller
             'content' => 'nullable|string',
             'published_at' => 'nullable|date',
             'is_published' => 'boolean',
+            'meta_title' => 'nullable|string|max:255',
+            'meta_description' => 'nullable|string|max:500',
+            'canonical_url' => 'nullable|string|max:500',
+            'meta_robots' => 'nullable|string|max:50',
+            'og_title' => 'nullable|string|max:255',
+            'og_description' => 'nullable|string|max:500',
+            'og_image' => 'nullable|string|max:500',
         ]);
 
         $blog->update([
@@ -104,6 +136,14 @@ class BlogController extends Controller
             'content' => $request->content,
             'published_at' => $request->published_at,
             'is_published' => $request->boolean('is_published', false),
+            'visibility' => $request->boolean('is_published', false) ? Blog::VISIBILITY_PUBLISHED : Blog::VISIBILITY_DRAFT,
+            'meta_title' => $request->meta_title,
+            'meta_description' => $request->meta_description,
+            'canonical_url' => $request->canonical_url,
+            'meta_robots' => $request->meta_robots,
+            'og_title' => $request->og_title,
+            'og_description' => $request->og_description,
+            'og_image' => $request->og_image,
         ]);
 
         if (request()->is('api/*')) {
@@ -128,7 +168,26 @@ class BlogController extends Controller
         $blog->save();
         return response()->json([
             'is_published' => $blog->is_published,
+            'visibility' => $blog->visibility,
             'message' => $blog->is_published ? 'Blog published.' : 'Blog unpublished.',
+        ]);
+    }
+
+    /**
+     * Update only visibility (from blogs list).
+     */
+    public function updateVisibility(Request $request, Blog $blog): JsonResponse
+    {
+        $request->validate([
+            'visibility' => 'required|in:'.implode(',', [Blog::VISIBILITY_PUBLISHED, Blog::VISIBILITY_DRAFT, Blog::VISIBILITY_PRIVATE]),
+        ]);
+        $blog->visibility = $request->visibility;
+        $blog->is_published = ($blog->visibility === Blog::VISIBILITY_PUBLISHED);
+        $blog->save();
+        return response()->json([
+            'message' => 'Visibility updated.',
+            'visibility' => $blog->visibility,
+            'is_published' => $blog->is_published,
         ]);
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\ContentManagerController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seo\IndexingController;
@@ -37,9 +38,10 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::get('/content-manager', function () {
-    return Inertia::render('ContentManager/Index');
-})->middleware(['auth', 'verified'])->name('content-manager.index');
+Route::middleware(['auth', 'verified'])->prefix('content-manager')->name('content-manager.')->group(function () {
+    Route::get('/', [ContentManagerController::class, 'index'])->name('index');
+    Route::put('/', [ContentManagerController::class, 'update'])->name('update');
+});
 
 Route::get('/media', function () {
     return Inertia::render('Media/Index');

@@ -10,6 +10,7 @@
 .admin-wrap {
   --bs-primary: #181826;
   --bs-primary-rgb: 24, 24, 38;
+  --admin-input-bg: #f8f8fa;
 }
 .admin-wrap .btn-primary,
 .admin-wrap button.btn-primary {
@@ -605,6 +606,20 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+/* All CMS input fields: distinct background from surrounding content */
+.admin-wrap .form-control,
+.admin-wrap .form-select,
+.admin-wrap .input-text,
+.admin-wrap input[type="text"],
+.admin-wrap input[type="email"],
+.admin-wrap input[type="password"],
+.admin-wrap input[type="url"],
+.admin-wrap input[type="number"],
+.admin-wrap input[type="datetime-local"],
+.admin-wrap textarea {
+  background-color: var(--admin-input-bg, #f8f8fa);
+}
+
 .admin-box-title {
   font-size: 1rem;
   font-weight: 600;
@@ -1129,7 +1144,7 @@
 .admin-box .form-select {
   font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
-  background: #fff;
+  background: var(--admin-input-bg, #f8f8fa);
   border: 1px solid #ced4da;
   border-radius: 6px;
   color: #212529;
@@ -1143,7 +1158,7 @@
 .admin-form-page .form-select:focus,
 .admin-box .form-control:focus,
 .admin-box .form-select:focus {
-  background: #fff;
+  background: var(--admin-input-bg, #f8f8fa);
   border-color: var(--admin-primary, #181826);
   outline: none;
   box-shadow: 0 0 0 2px rgba(24, 24, 38, 0.15);

@@ -2,26 +2,90 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\ContentManagerController;
 use App\Models\Blog;
+use App\Models\ContentManagerSetting;
 use App\Models\Page;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Validation\ValidationException;
 
 class PublicApiController extends Controller
 {
     /**
+     * Contact details for the frontend contact page (no auth).
+     * The contact_email is where form submissions are sent (set in CMS Content Manager).
+     */
+    public function contact(Request $request): JsonResponse
+    {
+        return response()->json([
+            'contact_email' => ContentManagerSetting::get(ContentManagerController::KEY_CONTACT_EMAIL, ''),
+            'contact_phone' => ContentManagerSetting::get(ContentManagerController::KEY_CONTACT_PHONE, ''),
+            'contact_address' => ContentManagerSetting::get(ContentManagerController::KEY_CONTACT_ADDRESS, ''),
+        ]);
+    }
+
+    /**
+     * Submit contact form. Sends email to the address configured in CMS Content Manager.
+     */
+    public function sendContact(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email',
+            'subject' => 'required|string|max:255',
+            'message' => 'required|string|max:5000',
+            'accepts_terms' => 'required|accepted',
+        ]);
+
+        $toEmail = ContentManagerSetting::get(ContentManagerController::KEY_CONTACT_EMAIL, '');
+        if (empty($toEmail)) {
+            throw ValidationException::withMessages([
+                'form' => ['Contact form is not configured. Please set the contact email in the CMS Content Manager.'],
+            ]);
+        }
+
+        $name = $validated['name'];
+        $email = $validated['email'];
+        $subject = $validated['subject'];
+        $messageBody = $validated['message'];
+
+        $body = "Contact form submission\n\n"
+            ."From: {$name} <{$email}>\n"
+            ."Subject: {$subject}\n\n"
+            ."Message:\n{$messageBody}\n";
+
+        try {
+            Mail::raw($body, function ($mail) use ($toEmail, $email, $name, $subject) {
+                $mail->to($toEmail)
+                    ->replyTo($email, $name)
+                    ->subject('Contact form: '.$subject);
+            });
+        } catch (\Throwable $e) {
+            report($e);
+            throw ValidationException::withMessages([
+                'form' => ['Unable to send message. Please try again later.'],
+            ]);
+        }
+
+        return response()->json(['message' => 'Message sent successfully.']);
+    }
+    /**
      * List published pages for nav/sitemap (no auth).
+     * Returns roots and children with parent_id so the frontend can show children under parent links.
      */
     public function pages(Request $request): JsonResponse
     {
         $pages = Page::where('is_published', true)
             ->where('visibility', Page::VISIBILITY_PUBLISHED)
-            ->whereNull('parent_id')
+            ->orderByRaw('parent_id IS NULL DESC')
             ->orderBy('sort_order')
             ->orderBy('title')
-            ->get(['id', 'title', 'slug', 'meta_title', 'meta_description', 'placement', 'sort_order'])
+            ->get(['id', 'parent_id', 'title', 'slug', 'meta_title', 'meta_description', 'placement', 'sort_order'])
             ->map(fn ($p) => [
                 'id' => $p->id,
+                'parent_id' => $p->parent_id,
                 'title' => $p->title,
                 'slug' => $p->slug,
                 'meta_title' => $p->meta_title,
@@ -84,7 +148,6 @@ class PublicApiController extends Controller
                 'og_description' => $b->og_description,
                 'og_image' => $b->og_image,
             ]);
-
         return response()->json(['blogs' => $blogs]);
     }
 
@@ -102,6 +165,8 @@ class PublicApiController extends Controller
             return response()->json(['message' => 'Blog not found.'], 404);
         }
 
+        $blog->loadMissing('author:id,name');
+
         return response()->json([
             'id' => $blog->id,
             'title' => $blog->title,
@@ -109,10 +174,14 @@ class PublicApiController extends Controller
             'excerpt' => $blog->excerpt,
             'content' => $blog->content,
             'published_at' => $blog->published_at?->toIso8601String(),
-            'meta_title' => $blog->og_title ?? $blog->title,
-            'meta_description' => $blog->og_description ?? $blog->excerpt,
-            'og_title' => $blog->og_title ?? $blog->title,
-            'og_description' => $blog->og_description ?? $blog->excerpt,
+            'updated_at' => $blog->updated_at?->toIso8601String(),
+            'author' => $blog->author ? ['id' => $blog->author->id, 'name' => $blog->author->name] : null,
+            'meta_title' => $blog->meta_title ?? $blog->og_title ?? $blog->title,
+            'meta_description' => $blog->meta_description ?? $blog->og_description ?? $blog->excerpt,
+            'canonical_url' => $blog->canonical_url,
+            'meta_robots' => $blog->meta_robots ?? $blog->metaRobotsForVisibility(),
+            'og_title' => $blog->og_title ?? $blog->meta_title ?? $blog->title,
+            'og_description' => $blog->og_description ?? $blog->meta_description ?? $blog->excerpt,
             'og_image' => $blog->og_image,
             'schema_type' => $blog->schema_type,
             'schema_data' => $blog->schema_data,

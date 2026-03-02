@@ -19,11 +19,13 @@ class ImageSeoController extends Controller
      */
     public function index(): Response
     {
-        $baseUrl = rtrim(config('app.url'), '/');
+        // Use current request origin so preview images load correctly (avoids APP_URL mismatch)
+        $baseUrl = request()->getSchemeAndHttpHost() ?: rtrim(config('app.url'), '/');
 
         $media = Media::with('sources')->orderBy('updated_at', 'desc')->get()->map(function (Media $m) use ($baseUrl) {
-            $url = $m->isLocal()
-                ? $baseUrl.'/'.ltrim($m->path, '/')
+            $path = ltrim($m->path ?? '', '/');
+            $url = $m->isLocal() && $baseUrl
+                ? $baseUrl.'/'.ltrim($path, '/')
                 : $m->path;
             return [
                 'id' => $m->id,

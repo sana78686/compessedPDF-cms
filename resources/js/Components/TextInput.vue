@@ -49,7 +49,7 @@ export default {
   padding: 0.5rem 0.75rem;
   font-size: 0.9375rem;
   color: #1a1a1a;
-  background: #fff;
+  background: #f8f8fa;
   border: 1px solid #ddd;
   border-radius: 8px;
   transition: border-color 0.2s, box-shadow 0.2s;

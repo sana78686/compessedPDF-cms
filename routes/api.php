@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PublicApiController;
 use App\Http\Controllers\RoleController;
@@ -19,6 +20,8 @@ Route::prefix('public')->name('api.public.')->group(function () {
     Route::get('pages/{slug}', [PublicApiController::class, 'pageBySlug'])->name('pages.show');
     Route::get('blogs', [PublicApiController::class, 'blogs'])->name('blogs');
     Route::get('blogs/{slug}', [PublicApiController::class, 'blogBySlug'])->name('blogs.show');
+    Route::get('contact', [PublicApiController::class, 'contact'])->name('contact');
+    Route::post('contact/send', [PublicApiController::class, 'sendContact'])->name('contact.send');
 });
 
 Route::middleware(['web', 'auth', 'verified'])->group(function () {
@@ -62,6 +65,7 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
         Route::put('/{blog}', [BlogController::class, 'update'])->name('update');
         Route::delete('/{blog}', [BlogController::class, 'destroy'])->name('destroy');
         Route::post('/{blog}/toggle-publish', [BlogController::class, 'togglePublish'])->name('toggle-publish');
+        Route::patch('/{blog}/visibility', [BlogController::class, 'updateVisibility'])->name('update-visibility');
     });
 
     Route::prefix('seo/url-redirects')->name('api.seo.url-redirects.')->group(function () {
@@ -95,5 +99,9 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
 
     Route::prefix('seo/content-optimization')->name('api.seo.content-optimization.')->group(function () {
         Route::post('analyze', [ContentOptimizationController::class, 'analyze'])->name('analyze');
+    });
+
+    Route::prefix('media')->name('api.media.')->group(function () {
+        Route::post('upload', [MediaController::class, 'upload'])->name('upload');
     });
 });

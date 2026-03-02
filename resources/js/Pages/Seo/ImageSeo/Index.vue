@@ -150,8 +150,9 @@ function sourceLabel(item) {
                     class="img-thumbnail"
                     style="max-width: 80px; max-height: 60px; object-fit: cover;"
                     loading="lazy"
-                    @error="($e) => $e.target.style.display = 'none'"
+                    @error="($e) => { $e.target.style.display = 'none'; $e.target.nextElementSibling?.classList.remove('d-none'); }"
                   />
+                  <span v-if="m.url" class="d-none text-muted small" style="max-width: 80px; display: block;">No preview</span>
                   <span v-else class="text-muted small">—</span>
                 </td>
                 <td class="align-middle">

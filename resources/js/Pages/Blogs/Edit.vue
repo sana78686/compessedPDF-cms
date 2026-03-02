@@ -22,8 +22,21 @@ const form = reactive({
   content: '',
   published_at: '',
   is_published: false,
+  meta_title: '',
+  meta_description: '',
+  canonical_url: '',
+  meta_robots: 'index,follow',
+  og_title: '',
+  og_description: '',
+  og_image: '',
 });
 const errors = reactive({});
+const metaRobotsOptions = [
+  { value: 'index,follow', label: 'Index, Follow' },
+  { value: 'index,nofollow', label: 'Index, No Follow' },
+  { value: 'noindex,follow', label: 'No Index, Follow' },
+  { value: 'noindex,nofollow', label: 'No Index, No Follow' },
+];
 const blogIdNum = computed(() => Number(props.blogId) || 0);
 
 function toDatetimeLocal(iso) {
@@ -45,6 +58,13 @@ onMounted(async () => {
     form.content = props.blog.content ?? '';
     form.published_at = toDatetimeLocal(props.blog.published_at);
     form.is_published = !!props.blog.is_published;
+    form.meta_title = props.blog.meta_title ?? '';
+    form.meta_description = props.blog.meta_description ?? '';
+    form.canonical_url = props.blog.canonical_url ?? '';
+    form.meta_robots = props.blog.meta_robots ?? 'index,follow';
+    form.og_title = props.blog.og_title ?? '';
+    form.og_description = props.blog.og_description ?? '';
+    form.og_image = props.blog.og_image ?? '';
     loading.value = false;
     return;
   }
@@ -57,6 +77,13 @@ onMounted(async () => {
     form.content = b.content ?? '';
     form.published_at = toDatetimeLocal(b.published_at);
     form.is_published = !!b.is_published;
+    form.meta_title = b.meta_title ?? '';
+    form.meta_description = b.meta_description ?? '';
+    form.canonical_url = b.canonical_url ?? '';
+    form.meta_robots = b.meta_robots ?? 'index,follow';
+    form.og_title = b.og_title ?? '';
+    form.og_description = b.og_description ?? '';
+    form.og_image = b.og_image ?? '';
   } catch (e) {
     loadError.value = e.response?.data?.message || 'Failed to load blog.';
   } finally {
@@ -147,6 +174,46 @@ async function submit() {
                 </div>
               </div>
             </div>
+
+            <hr class="my-4" />
+            <h2 class="h6 mb-3">SEO / Meta tags (articles &amp; blogs)</h2>
+            <div class="row g-3 mb-3">
+              <div class="col-12">
+                <LabelWithTooltip for="meta_title" value="Meta title" tip="Title in search results. Falls back to post title if empty." optional />
+                <TextInput id="meta_title" v-model="form.meta_title" class="form-control form-control-sm" placeholder="e.g. Article Title | Site Name" />
+                <InputError :message="errors.meta_title?.[0]" />
+              </div>
+              <div class="col-12">
+                <LabelWithTooltip for="meta_description" value="Meta description" tip="Short description in search results. Recommended 150–160 characters." optional />
+                <textarea id="meta_description" v-model="form.meta_description" class="form-control form-control-sm" rows="2" maxlength="500" placeholder="Brief description for search snippets"></textarea>
+                <InputError :message="errors.meta_description?.[0]" />
+              </div>
+              <div class="col-md-6">
+                <LabelWithTooltip for="canonical_url" value="Canonical URL" tip="Preferred URL if this article exists elsewhere. Leave blank to use current URL." optional />
+                <TextInput id="canonical_url" v-model="form.canonical_url" type="url" class="form-control form-control-sm" placeholder="https://example.com/blog/slug" />
+                <InputError :message="errors.canonical_url?.[0]" />
+              </div>
+              <div class="col-md-6">
+                <LabelWithTooltip for="meta_robots" value="Meta robots" tip="Tell search engines whether to index this article." optional />
+                <select id="meta_robots" v-model="form.meta_robots" class="form-select form-select-sm">
+                  <option v-for="opt in metaRobotsOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
+                </select>
+              </div>
+              <div class="col-12">
+                <LabelWithTooltip for="og_title" value="OG title" tip="Title when shared on social. Falls back to meta title." optional />
+                <TextInput id="og_title" v-model="form.og_title" class="form-control form-control-sm" />
+              </div>
+              <div class="col-12">
+                <LabelWithTooltip for="og_description" value="OG description" tip="Description when shared on social." optional />
+                <textarea id="og_description" v-model="form.og_description" class="form-control form-control-sm" rows="2" maxlength="500"></textarea>
+              </div>
+              <div class="col-12">
+                <LabelWithTooltip for="og_image" value="OG image URL" tip="Image URL when the article is shared (e.g. 1200×630px). Also used as the article cover on the blog list." optional />
+                <TextInput id="og_image" v-model="form.og_image" type="url" class="form-control form-control-sm" placeholder="https://example.com/image.jpg" />
+                <InputError :message="errors.og_image?.[0]" />
+              </div>
+            </div>
+
             <InputError v-if="errors.form" :message="errors.form" />
             <div class="d-flex gap-2">
               <Link :href="route('blogs.index')" class="btn btn-secondary btn-sm admin-btn-smooth">Cancel</Link>
