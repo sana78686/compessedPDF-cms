@@ -92,6 +92,7 @@ class PublicApiController extends Controller
                 'meta_description' => $p->meta_description,
                 'placement' => $p->placement,
                 'sort_order' => $p->sort_order,
+                
             ]);
 
         return response()->json(['pages' => $pages]);
