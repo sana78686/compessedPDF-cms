@@ -5,6 +5,7 @@ use App\Http\Controllers\MediaController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\PublicApiController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\Seo\BrokenLinksController;
 use App\Http\Controllers\Seo\IndexingController;
 use App\Http\Controllers\Seo\ContentOptimizationController;
 use App\Http\Controllers\Seo\ImageSeoController;
