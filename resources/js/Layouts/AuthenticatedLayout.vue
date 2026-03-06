@@ -47,6 +47,17 @@ const activeSeoModule = computed(() => {
   return match ? match[1] : '';
 });
 
+/** Section title for the main header (Dashboard | Content manager | Media library | SEO | Account). */
+const sectionTitle = computed(() => {
+  const s = activeNavSection.value;
+  if (s === 'dashboard') return 'Dashboard';
+  if (s === 'content') return 'Content manager';
+  if (s === 'media') return 'Media library';
+  if (s === 'seo') return 'SEO';
+  if (s === 'account') return 'Account';
+  return 'Dashboard';
+});
+
 function can(permission) {
   const perms = page.props.auth?.user?.permissions;
   if (!perms) return false;
@@ -91,9 +102,6 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
 
     <!-- Narrow icon sidebar (Strapi-style left bar) -->
     <aside class="admin-icon-sidebar" :class="{ 'is-open': sidebarOpen }">
-      <Link :href="route('dashboard')" class="admin-icon-sidebar-logo" aria-label="Home">
-        <span class="admin-icon-sidebar-logo-inner">C</span>
-      </Link>
       <nav class="admin-icon-sidebar-nav" aria-label="Main">
         <Link
           :href="route('dashboard')"
@@ -170,9 +178,13 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
       </div>
     </aside>
 
-    <!-- Wider secondary sidebar: content depends on which icon is active -->
+    <!-- Wider secondary sidebar: logo at top (all modules) + nav -->
     <aside class="admin-nav-sidebar" :class="{ 'is-open': sidebarOpen }">
-      <div class="admin-nav-sidebar-title">{{ activeNavSection === 'dashboard' ? 'Dashboard' : activeNavSection === 'content' ? 'Content manager' : activeNavSection === 'seo' ? 'SEO' : activeNavSection === 'account' ? 'Account' : 'Media library' }}</div>
+      <div class="admin-nav-sidebar-head">
+        <Link :href="route('dashboard')" class="admin-nav-sidebar-logo" aria-label="compressedPDF Home">
+          <img src="/logos/compresspdf.png" alt="compressedPDF" class="admin-nav-sidebar-logo-img" />
+        </Link>
+      </div>
       <nav class="admin-nav-sidebar-nav">
         <!-- Home icon: Dashboard only -->
         <template v-if="activeNavSection === 'dashboard'">
@@ -185,15 +197,83 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             Dashboard
           </Link>
         </template>
-        <!-- Pencil icon: Content manager (Pages, Blogs) -->
+        <!-- Pencil icon: Content manager (Home page + children: FAQ, Use cards; then Contact, Terms, Pages, Blogs) -->
         <template v-else-if="activeNavSection === 'content'">
+          <div class="admin-nav-sidebar-group">
+            <Link
+              :href="route('content-manager.index')"
+              class="admin-nav-sidebar-link"
+              :class="{ 'is-active': route().current('content-manager.index') }"
+              @click="closeSidebar"
+            >
+              Home page
+            </Link>
+            <div class="admin-nav-sidebar-sublinks">
+              <Link
+                :href="route('content-manager.home', { tab: 'faq' })"
+                class="admin-nav-sidebar-sublink"
+                :class="{ 'is-active': route().current('content-manager.home') && page.url.endsWith('/faq') }"
+                @click="closeSidebar"
+              >
+                FAQ
+              </Link>
+              <Link
+                :href="route('content-manager.home', { tab: 'use-cards' })"
+                class="admin-nav-sidebar-sublink"
+                :class="{ 'is-active': route().current('content-manager.home') && page.url.includes('/use-cards') }"
+                @click="closeSidebar"
+              >
+                Use cards
+              </Link>
+            </div>
+          </div>
           <Link
-            :href="route('content-manager.index')"
+            :href="route('content-manager.contact')"
             class="admin-nav-sidebar-link"
-            :class="{ 'is-active': route().current('content-manager.index') }"
+            :class="{ 'is-active': route().current('content-manager.contact') }"
             @click="closeSidebar"
           >
-            Content manager
+            Contact us page
+          </Link>
+          <Link
+            :href="route('content-manager.terms')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.terms') }"
+            @click="closeSidebar"
+          >
+            Terms and conditions
+          </Link>
+          <Link
+            :href="route('content-manager.privacy-policy')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.privacy-policy') }"
+            @click="closeSidebar"
+          >
+            Privacy policy
+          </Link>
+          <Link
+            :href="route('content-manager.disclaimer')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.disclaimer') }"
+            @click="closeSidebar"
+          >
+            Disclaimer
+          </Link>
+          <Link
+            :href="route('content-manager.about-us')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.about-us') }"
+            @click="closeSidebar"
+          >
+            About us
+          </Link>
+          <Link
+            :href="route('content-manager.cookie-policy')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('content-manager.cookie-policy') }"
+            @click="closeSidebar"
+          >
+            Cookie policy
           </Link>
           <Link
             :href="route('pages.index')"
@@ -292,10 +372,10 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <div v-if="$slots.header" class="admin-page-title">
-            <slot name="header" />
-          </div>
-          <div v-else class="admin-page-title">Dashboard</div>
+          <Link :href="route('dashboard')" class="admin-header-logo" aria-label="compressedPDF Home">
+            <img src="/logos/compresspdf.png" alt="compressedPDF" class="admin-header-logo-img" />
+          </Link>
+          <span class="admin-header-section-title">{{ sectionTitle }}</span>
         </div>
 
         <div class="admin-header-right">

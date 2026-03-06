@@ -126,20 +126,42 @@
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 72px;
+  height: 56px;
+  padding: 8px;
+  margin: 8px 4px;
   background: var(--admin-logo-block-bg);
+  border-radius: 6px;
   text-decoration: none;
   color: #fff;
-  font-size: 1.5rem;
-  font-weight: 700;
+  box-sizing: border-box;
 }
 
 .admin-icon-sidebar-logo:hover {
   color: #fff;
-  opacity: 0.95;
+  opacity: 0.9;
+}
+
+.admin-icon-sidebar-logo-icon {
+  flex-shrink: 0;
 }
 
 .admin-icon-sidebar-logo-inner {
+  display: block;
+}
+
+.admin-icon-sidebar-logo-text {
+  display: block;
+  word-break: break-word;
+  hyphens: none;
+}
+
+.admin-icon-sidebar-logo-img {
+  max-height: 28px;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
   display: block;
 }
 
@@ -216,13 +238,37 @@
   transition: transform 0.2s ease;
 }
 
-.admin-nav-sidebar-title {
+.admin-nav-sidebar-head {
   flex-shrink: 0;
   padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--admin-nav-sidebar-border);
+}
+
+.admin-nav-sidebar-logo {
+  display: block;
+  text-decoration: none;
+}
+
+.admin-nav-sidebar-logo-img {
+  height: 32px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.admin-nav-sidebar-title {
+  padding: 1rem 1.25rem 0.5rem;
   font-size: 1rem;
   font-weight: 600;
   color: var(--admin-nav-sidebar-text);
-  border-bottom: 1px solid var(--admin-nav-sidebar-border);
+}
+
+.admin-nav-sidebar-page-title {
+  padding: 0 1.25rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-nav-sidebar-text-muted);
 }
 
 .admin-nav-sidebar-nav {
@@ -372,6 +418,30 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--admin-text);
+}
+
+.admin-header-logo {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  margin-left: 0.5rem;
+}
+
+.admin-header-logo-img {
+  height: 32px;
+  width: auto;
+  max-width: 180px;
+  object-fit: contain;
+  display: block;
+}
+
+.admin-header-section-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+  margin-left: 1rem;
+  padding-left: 1rem;
+  border-left: 1px solid var(--admin-header-border);
 }
 
 .admin-header-right {

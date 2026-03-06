@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\ContentManagerController;
+use App\Http\Controllers\FaqSectionController;
+use App\Http\Controllers\CardsSectionController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Seo\IndexingController;
@@ -42,6 +44,29 @@ Route::get('/dashboard', function () {
 Route::middleware(['auth', 'verified'])->prefix('content-manager')->name('content-manager.')->group(function () {
     Route::get('/', [ContentManagerController::class, 'index'])->name('index');
     Route::put('/', [ContentManagerController::class, 'update'])->name('update');
+    Route::put('/home-seo', [ContentManagerController::class, 'homeSeoUpdate'])->name('home-seo.update');
+    Route::get('/home', fn () => redirect()->route('content-manager.home', ['tab' => 'faq']));
+    Route::get('/home/{tab}', [ContentManagerController::class, 'home'])->name('home')->where('tab', 'faq|use-cards');
+    Route::get('/faq', fn () => redirect()->route('content-manager.home', ['tab' => 'faq']))->name('faq');
+    Route::get('/cards', fn () => redirect()->route('content-manager.home', ['tab' => 'use-cards']))->name('cards');
+    Route::get('/contact', [ContentManagerController::class, 'contact'])->name('contact');
+    Route::put('/contact', [ContentManagerController::class, 'contactUpdate'])->name('contact.update');
+    Route::get('/terms', [ContentManagerController::class, 'terms'])->name('terms');
+    Route::put('/terms', [ContentManagerController::class, 'termsUpdate'])->name('terms.update');
+    Route::get('/privacy-policy', [ContentManagerController::class, 'privacyPolicy'])->name('privacy-policy');
+    Route::put('/privacy-policy', [ContentManagerController::class, 'privacyPolicyUpdate'])->name('privacy-policy.update');
+    Route::get('/disclaimer', [ContentManagerController::class, 'disclaimer'])->name('disclaimer');
+    Route::put('/disclaimer', [ContentManagerController::class, 'disclaimerUpdate'])->name('disclaimer.update');
+    Route::get('/about-us', [ContentManagerController::class, 'aboutUs'])->name('about-us');
+    Route::put('/about-us', [ContentManagerController::class, 'aboutUsUpdate'])->name('about-us.update');
+    Route::get('/cookie-policy', [ContentManagerController::class, 'cookiePolicy'])->name('cookie-policy');
+    Route::put('/cookie-policy', [ContentManagerController::class, 'cookiePolicyUpdate'])->name('cookie-policy.update');
+    Route::post('/faq', [FaqSectionController::class, 'store'])->name('faq.store');
+    Route::put('/faq/{faqItem}', [FaqSectionController::class, 'update'])->name('faq.update');
+    Route::delete('/faq/{faqItem}', [FaqSectionController::class, 'destroy'])->name('faq.destroy');
+    Route::post('/cards', [CardsSectionController::class, 'store'])->name('cards.store');
+    Route::put('/cards/{card}', [CardsSectionController::class, 'update'])->name('cards.update');
+    Route::delete('/cards/{card}', [CardsSectionController::class, 'destroy'])->name('cards.destroy');
 });
 
 Route::get('/media', function () {

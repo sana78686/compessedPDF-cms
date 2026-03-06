@@ -23,6 +23,10 @@ Route::prefix('public')->name('api.public.')->group(function () {
     Route::get('blogs/{slug}', [PublicApiController::class, 'blogBySlug'])->name('blogs.show');
     Route::get('contact', [PublicApiController::class, 'contact'])->name('contact');
     Route::post('contact/send', [PublicApiController::class, 'sendContact'])->name('contact.send');
+    Route::get('faq', [PublicApiController::class, 'faq'])->name('faq');
+    Route::get('home-cards', [PublicApiController::class, 'homeCards'])->name('home-cards');
+    Route::get('home-content', [PublicApiController::class, 'homeContent'])->name('home-content');
+    Route::get('legal/{slug}', [PublicApiController::class, 'legalPage'])->name('legal')->where('slug', 'terms|privacy-policy|disclaimer|about-us|cookie-policy');
 });
 
 Route::middleware(['web', 'auth', 'verified'])->group(function () {

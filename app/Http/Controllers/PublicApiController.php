@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\ContentManagerController;
 use App\Models\Blog;
 use App\Models\ContentManagerSetting;
+use App\Models\FaqItem;
+use App\Models\HomeCard;
 use App\Models\Page;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -186,6 +188,60 @@ class PublicApiController extends Controller
             'og_image' => $blog->og_image,
             'schema_type' => $blog->schema_type,
             'schema_data' => $blog->schema_data,
+        ]);
+    }
+
+    /**
+     * List FAQ items for the home page FAQ section (no auth).
+     */
+    public function faq(Request $request): JsonResponse
+    {
+        $items = FaqItem::ordered()->get(['id', 'question', 'answer', 'sort_order']);
+
+        return response()->json(['faq' => $items]);
+    }
+
+    /**
+     * List home cards for "Why use our PDF compressor" (no auth).
+     */
+    public function homeCards(Request $request): JsonResponse
+    {
+        $cards = HomeCard::ordered()->get(['id', 'title', 'description', 'icon', 'sort_order']);
+
+        return response()->json(['cards' => $cards]);
+    }
+
+    /**
+     * Home page rich text content and meta/SEO (shown above FAQ on frontend). No auth.
+     */
+    public function homeContent(Request $request): JsonResponse
+    {
+        return response()->json([
+            'content' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_PAGE_CONTENT, ''),
+            'meta_title' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_TITLE, ''),
+            'meta_description' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_DESCRIPTION, ''),
+            'og_title' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_TITLE, ''),
+            'og_description' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_DESCRIPTION, ''),
+            'og_image' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_IMAGE, ''),
+        ]);
+    }
+
+    /**
+     * Legal/content page by slug: terms, privacy-policy, disclaimer, about-us, cookie-policy. No auth.
+     */
+    public function legalPage(Request $request, string $slug): JsonResponse
+    {
+        $map = ContentManagerController::legalPageMap();
+        if (! isset($map[$slug])) {
+            return response()->json(['message' => 'Page not found.'], 404);
+        }
+        [$key, $title] = $map[$slug];
+        $content = ContentManagerSetting::get($key, '');
+
+        return response()->json([
+            'slug' => $slug,
+            'title' => $title,
+            'content' => $content,
         ]);
     }
 }

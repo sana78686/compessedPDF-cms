@@ -3,65 +3,61 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import HomePageEditor from '@/Components/HomePageEditor.vue';
 import InputError from '@/Components/InputError.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
-import TextInput from '@/Components/TextInput.vue';
-import { Head, useForm } from '@inertiajs/vue3';
-import { ref, watch } from 'vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
+import { watch } from 'vue';
 
 const props = defineProps({
   homePageContent: { type: String, default: '' },
-  contactEmail: { type: String, default: '' },
-  contactPhone: { type: String, default: '' },
-  contactAddress: { type: String, default: '' },
+  homeMetaTitle: { type: String, default: '' },
+  homeMetaDescription: { type: String, default: '' },
+  homeOgTitle: { type: String, default: '' },
+  homeOgDescription: { type: String, default: '' },
+  homeOgImage: { type: String, default: '' },
   flash: { type: Object, default: () => ({}) },
 });
 
-const activeTab = ref('home');
-
 const form = useForm({
   home_page_content: props.homePageContent,
-  contact_email: props.contactEmail,
-  contact_phone: props.contactPhone,
-  contact_address: props.contactAddress,
 });
 
-watch(
-  () => [props.homePageContent, props.contactEmail, props.contactPhone, props.contactAddress],
-  ([home, contact, phone, address]) => {
-    form.home_page_content = home ?? '';
-    form.contact_email = contact ?? '';
-    form.contact_phone = phone ?? '';
-    form.contact_address = address ?? '';
-  }
-);
+const seoForm = useForm({
+  meta_title: props.homeMetaTitle,
+  meta_description: props.homeMetaDescription,
+  og_title: props.homeOgTitle,
+  og_description: props.homeOgDescription,
+  og_image: props.homeOgImage,
+});
 
-function submitHome() {
+watch(() => props.homePageContent, (val) => {
+  form.home_page_content = val ?? '';
+});
+watch(() => props.homeMetaTitle, (val) => { seoForm.meta_title = val ?? ''; });
+watch(() => props.homeMetaDescription, (val) => { seoForm.meta_description = val ?? ''; });
+watch(() => props.homeOgTitle, (val) => { seoForm.og_title = val ?? ''; });
+watch(() => props.homeOgDescription, (val) => { seoForm.og_description = val ?? ''; });
+watch(() => props.homeOgImage, (val) => { seoForm.og_image = val ?? ''; });
+
+function submit() {
   form.clearErrors();
-  form.put(route('content-manager.update'), {
-    preserveScroll: true,
-    onSuccess: () => {},
-  });
+  form.put(route('content-manager.update'), { preserveScroll: true });
 }
-
-function submitContact() {
-  form.clearErrors();
-  form.put(route('content-manager.update'), {
-    preserveScroll: true,
-    onSuccess: () => {},
-  });
+function submitSeo() {
+  seoForm.clearErrors();
+  seoForm.put(route('content-manager.home-seo.update'), { preserveScroll: true });
 }
 </script>
 
 <template>
-  <Head title="Content manager" />
+  <Head title="Home page – Content manager" />
 
   <AuthenticatedLayout>
-    <template #header>Content manager</template>
+    <template #header>Home page</template>
 
     <div class="admin-form-page">
       <div class="admin-form-page-header mb-3">
-        <h1 class="admin-form-page-title">Content manager</h1>
+        <h1 class="admin-form-page-title">Home page</h1>
         <p class="admin-form-page-desc text-muted small">
-          Manage your content here. Use the tabs below to edit the home page or contact mail settings.
+          Edit the main content of the frontend home page. Use the <strong>Card</strong> button in the toolbar to add card blocks.
         </p>
       </div>
 
@@ -70,130 +66,110 @@ function submitContact() {
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
       </div>
 
-      <!-- Tabs -->
-      <ul class="nav nav-tabs admin-tabs mb-3" role="tablist">
-        <li class="nav-item" role="presentation">
-          <button
-            type="button"
-            class="nav-link"
-            :class="{ active: activeTab === 'home' }"
-            role="tab"
-            aria-selected="activeTab === 'home'"
-            @click="activeTab = 'home'"
-          >
-            Home page
-          </button>
-        </li>
-        <li class="nav-item" role="presentation">
-          <button
-            type="button"
-            class="nav-link"
-            :class="{ active: activeTab === 'contact' }"
-            role="tab"
-            aria-selected="activeTab === 'contact'"
-            @click="activeTab = 'contact'"
-          >
-            Contact us mail information
-          </button>
-        </li>
-      </ul>
-
-      <div class="admin-box admin-box-smooth">
-        <!-- Tab: Home page -->
-        <div v-show="activeTab === 'home'" role="tabpanel" class="content-manager-tab-panel">
-          <p class="text-muted small mb-3">
-            Design your home page content. Use the <strong>Card</strong> button in the toolbar to add card blocks. Cards are displayed as separate blocks on the frontend.
-          </p>
-          <div class="mb-3">
-            <label class="form-label small fw-semibold">Home page content</label>
-            <HomePageEditor v-model="form.home_page_content" />
-            <InputError :message="form.errors.home_page_content" />
-          </div>
-          <PrimaryButton
-            type="button"
-            class="btn btn-primary btn-sm admin-btn-smooth"
-            :disabled="form.processing"
-            @click="submitHome"
-          >
+      <div class="admin-box admin-box-smooth mb-4">
+        <label class="form-label small fw-semibold">Home page content</label>
+        <HomePageEditor v-model="form.home_page_content" />
+        <InputError :message="form.errors.home_page_content" class="mt-2" />
+        <div class="mt-3">
+          <PrimaryButton type="button" class="btn btn-primary btn-sm" :disabled="form.processing" @click="submit">
             Save home page
           </PrimaryButton>
         </div>
+      </div>
 
-        <!-- Tab: Contact us mail information -->
-        <div v-show="activeTab === 'contact'" role="tabpanel" class="content-manager-tab-panel">
-          <p class="text-muted small mb-3">
-            <strong>On this email you will get requests from the contact request page.</strong> These details are shown on the frontend Contact page.
-          </p>
-          <div class="mb-3">
-            <label for="contact_email" class="form-label small fw-semibold">Contact email</label>
-            <TextInput
-              id="contact_email"
-              v-model="form.contact_email"
-              type="email"
-              class="form-control form-control-sm"
-              placeholder="e.g. contact@example.com"
-            />
-            <InputError :message="form.errors.contact_email" />
-          </div>
-          <div class="mb-3">
-            <label for="contact_phone" class="form-label small fw-semibold">Contact phone / number</label>
-            <TextInput
-              id="contact_phone"
-              v-model="form.contact_phone"
-              type="text"
-              class="form-control form-control-sm"
-              placeholder="e.g. +1 234 567 8900"
-            />
-            <InputError :message="form.errors.contact_phone" />
-          </div>
-          <div class="mb-3">
-            <label for="contact_address" class="form-label small fw-semibold">Contact address</label>
-            <textarea
-              id="contact_address"
-              v-model="form.contact_address"
-              class="form-control form-control-sm"
-              rows="3"
-              placeholder="e.g. 123 Main St, City, Country"
-            />
-            <InputError :message="form.errors.contact_address" />
-          </div>
-          <PrimaryButton
-            type="button"
-            class="btn btn-primary btn-sm admin-btn-smooth"
-            :disabled="form.processing"
-            @click="submitContact"
-          >
-            Save contact details
-          </PrimaryButton>
+      <div class="admin-box admin-box-smooth mb-4">
+        <h2 class="h6 mb-3">Meta tags &amp; SEO (home page only)</h2>
+        <p class="text-muted small mb-3">These meta tags and Open Graph fields are used only for the frontend home page (landing). Leave blank to use defaults.</p>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Meta title</label>
+          <input v-model="seoForm.meta_title" type="text" class="form-control form-control-sm" placeholder="e.g. Compress PDF – Free Online PDF Compressor" maxlength="255" />
+          <InputError :message="seoForm.errors.meta_title" />
         </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Meta description</label>
+          <textarea v-model="seoForm.meta_description" class="form-control form-control-sm" rows="2" placeholder="Short description for search results" maxlength="500"></textarea>
+          <InputError :message="seoForm.errors.meta_description" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Open Graph title</label>
+          <input v-model="seoForm.og_title" type="text" class="form-control form-control-sm" placeholder="Defaults to meta title" maxlength="255" />
+          <InputError :message="seoForm.errors.og_title" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Open Graph description</label>
+          <textarea v-model="seoForm.og_description" class="form-control form-control-sm" rows="2" placeholder="Defaults to meta description" maxlength="500"></textarea>
+          <InputError :message="seoForm.errors.og_description" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Open Graph image URL</label>
+          <input v-model="seoForm.og_image" type="url" class="form-control form-control-sm" placeholder="https://… (optional)" />
+          <InputError :message="seoForm.errors.og_image" />
+        </div>
+        <PrimaryButton type="button" class="btn btn-primary btn-sm" :disabled="seoForm.processing" @click="submitSeo">
+          Save meta tags &amp; SEO
+        </PrimaryButton>
+      </div>
+
+      <p class="text-muted small mb-2">Manage other home page sections:</p>
+      <div class="content-manager-home-links">
+        <Link :href="route('content-manager.home', { tab: 'faq' })" class="content-manager-home-link admin-box admin-box-smooth">
+          <span class="content-manager-home-link-icon" aria-hidden="true">❓</span>
+          <div>
+            <strong class="content-manager-home-link-title">FAQ</strong>
+            <p class="content-manager-home-link-desc text-muted small mb-0">Frequently asked questions shown on the home page.</p>
+          </div>
+          <span class="content-manager-home-link-arrow" aria-hidden="true">→</span>
+        </Link>
+        <Link :href="route('content-manager.home', { tab: 'use-cards' })" class="content-manager-home-link admin-box admin-box-smooth">
+          <span class="content-manager-home-link-icon" aria-hidden="true">🃏</span>
+          <div>
+            <strong class="content-manager-home-link-title">Use cards</strong>
+            <p class="content-manager-home-link-desc text-muted small mb-0">Feature cards (e.g. “Why use our PDF compressor?”) on the home page.</p>
+          </div>
+          <span class="content-manager-home-link-arrow" aria-hidden="true">→</span>
+        </Link>
       </div>
     </div>
   </AuthenticatedLayout>
 </template>
 
 <style scoped>
-.admin-tabs {
-  border-bottom: 1px solid var(--admin-card-border, #eaeaef);
+.content-manager-home-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-width: 36rem;
 }
-.admin-tabs .nav-link {
-  border: none;
-  border-bottom: 2px solid transparent;
-  background: none;
+.content-manager-home-link {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+}
+.content-manager-home-link:hover {
+  border-color: var(--admin-primary, #4945ff);
+  background: rgba(73, 69, 255, 0.04);
+  box-shadow: 0 2px 8px rgba(73, 69, 255, 0.08);
+}
+.content-manager-home-link-icon {
+  font-size: 1.75rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.content-manager-home-link-title {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.content-manager-home-link-arrow {
+  margin-left: auto;
   color: var(--admin-text-muted, #666687);
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  cursor: pointer;
-  margin-bottom: -1px;
-  border-radius: 0;
+  font-size: 1.25rem;
 }
-.admin-tabs .nav-link:hover {
-  color: var(--admin-text, #32324d);
-}
-.admin-tabs .nav-link.active {
-  color: var(--admin-primary, #181826);
-  border-bottom-color: var(--admin-primary, #181826);
-}
-.content-manager-tab-panel {
-  padding: 0.25rem 0;
+.content-manager-home-link:hover .content-manager-home-link-arrow {
+  color: var(--admin-primary, #4945ff);
 }
 </style>
