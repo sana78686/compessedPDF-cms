@@ -45,8 +45,8 @@ Route::middleware(['auth', 'verified'])->prefix('content-manager')->name('conten
     Route::get('/', [ContentManagerController::class, 'index'])->name('index');
     Route::put('/', [ContentManagerController::class, 'update'])->name('update');
     Route::put('/home-seo', [ContentManagerController::class, 'homeSeoUpdate'])->name('home-seo.update');
-    Route::get('/home', fn () => redirect()->route('content-manager.home', ['tab' => 'faq']));
-    Route::get('/home/{tab}', [ContentManagerController::class, 'home'])->name('home')->where('tab', 'faq|use-cards');
+    Route::get('/home', [ContentManagerController::class, 'home'])->name('home')->defaults('tab', 'faq');
+    Route::get('/home/{tab}', [ContentManagerController::class, 'home'])->where('tab', 'faq|use-cards');
     Route::get('/faq', fn () => redirect()->route('content-manager.home', ['tab' => 'faq']))->name('faq');
     Route::get('/cards', fn () => redirect()->route('content-manager.home', ['tab' => 'use-cards']))->name('cards');
     Route::get('/contact', [ContentManagerController::class, 'contact'])->name('contact');
