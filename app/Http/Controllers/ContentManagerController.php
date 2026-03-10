@@ -15,6 +15,8 @@ class ContentManagerController extends Controller
     public const KEY_HOME_PAGE_CONTENT = 'home_page_content';
     public const KEY_HOME_META_TITLE = 'home_meta_title';
     public const KEY_HOME_META_DESCRIPTION = 'home_meta_description';
+    public const KEY_HOME_META_KEYWORDS = 'home_meta_keywords';
+    public const KEY_HOME_FOCUS_KEYWORD = 'home_focus_keyword';
     public const KEY_HOME_OG_TITLE = 'home_og_title';
     public const KEY_HOME_OG_DESCRIPTION = 'home_og_description';
     public const KEY_HOME_OG_IMAGE = 'home_og_image';
@@ -45,6 +47,8 @@ class ContentManagerController extends Controller
             'homePageContent' => ContentManagerSetting::get(self::KEY_HOME_PAGE_CONTENT, ''),
             'homeMetaTitle' => ContentManagerSetting::get(self::KEY_HOME_META_TITLE, ''),
             'homeMetaDescription' => ContentManagerSetting::get(self::KEY_HOME_META_DESCRIPTION, ''),
+            'homeMetaKeywords' => ContentManagerSetting::get(self::KEY_HOME_META_KEYWORDS, ''),
+            'homeFocusKeyword' => ContentManagerSetting::get(self::KEY_HOME_FOCUS_KEYWORD, ''),
             'homeOgTitle' => ContentManagerSetting::get(self::KEY_HOME_OG_TITLE, ''),
             'homeOgDescription' => ContentManagerSetting::get(self::KEY_HOME_OG_DESCRIPTION, ''),
             'homeOgImage' => ContentManagerSetting::get(self::KEY_HOME_OG_IMAGE, ''),
@@ -58,12 +62,16 @@ class ContentManagerController extends Controller
         $validated = $request->validate([
             'meta_title' => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
+            'meta_keywords' => 'nullable|string|max:255',
+            'focus_keyword' => 'nullable|string|max:255',
             'og_title' => 'nullable|string|max:255',
             'og_description' => 'nullable|string|max:500',
             'og_image' => 'nullable|string|max:2048',
         ]);
         ContentManagerSetting::set(self::KEY_HOME_META_TITLE, $validated['meta_title'] ?? '');
         ContentManagerSetting::set(self::KEY_HOME_META_DESCRIPTION, $validated['meta_description'] ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_META_KEYWORDS, $validated['meta_keywords'] ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_FOCUS_KEYWORD, $validated['focus_keyword'] ?? '');
         ContentManagerSetting::set(self::KEY_HOME_OG_TITLE, $validated['og_title'] ?? '');
         ContentManagerSetting::set(self::KEY_HOME_OG_DESCRIPTION, $validated['og_description'] ?? '');
         ContentManagerSetting::set(self::KEY_HOME_OG_IMAGE, $validated['og_image'] ?? '');

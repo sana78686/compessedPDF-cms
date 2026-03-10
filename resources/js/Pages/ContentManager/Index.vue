@@ -10,6 +10,8 @@ const props = defineProps({
   homePageContent: { type: String, default: '' },
   homeMetaTitle: { type: String, default: '' },
   homeMetaDescription: { type: String, default: '' },
+  homeMetaKeywords: { type: String, default: '' },
+  homeFocusKeyword: { type: String, default: '' },
   homeOgTitle: { type: String, default: '' },
   homeOgDescription: { type: String, default: '' },
   homeOgImage: { type: String, default: '' },
@@ -23,6 +25,8 @@ const form = useForm({
 const seoForm = useForm({
   meta_title: props.homeMetaTitle,
   meta_description: props.homeMetaDescription,
+  meta_keywords: props.homeMetaKeywords,
+  focus_keyword: props.homeFocusKeyword,
   og_title: props.homeOgTitle,
   og_description: props.homeOgDescription,
   og_image: props.homeOgImage,
@@ -33,6 +37,8 @@ watch(() => props.homePageContent, (val) => {
 });
 watch(() => props.homeMetaTitle, (val) => { seoForm.meta_title = val ?? ''; });
 watch(() => props.homeMetaDescription, (val) => { seoForm.meta_description = val ?? ''; });
+watch(() => props.homeMetaKeywords, (val) => { seoForm.meta_keywords = val ?? ''; });
+watch(() => props.homeFocusKeyword, (val) => { seoForm.focus_keyword = val ?? ''; });
 watch(() => props.homeOgTitle, (val) => { seoForm.og_title = val ?? ''; });
 watch(() => props.homeOgDescription, (val) => { seoForm.og_description = val ?? ''; });
 watch(() => props.homeOgImage, (val) => { seoForm.og_image = val ?? ''; });
@@ -89,6 +95,16 @@ function submitSeo() {
           <label class="form-label small fw-semibold">Meta description</label>
           <textarea v-model="seoForm.meta_description" class="form-control form-control-sm" rows="2" placeholder="Short description for search results" maxlength="500"></textarea>
           <InputError :message="seoForm.errors.meta_description" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Meta keywords</label>
+          <input v-model="seoForm.meta_keywords" type="text" class="form-control form-control-sm" placeholder="keyword1, keyword2, keyword3" maxlength="255" />
+          <InputError :message="seoForm.errors.meta_keywords" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Focus keyword</label>
+          <input v-model="seoForm.focus_keyword" type="text" class="form-control form-control-sm" placeholder="Primary keyword for this page" maxlength="255" />
+          <InputError :message="seoForm.errors.focus_keyword" />
         </div>
         <div class="mb-2">
           <label class="form-label small fw-semibold">Open Graph title</label>
