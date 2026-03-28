@@ -217,14 +217,16 @@ class PublicApiController extends Controller
     public function homeContent(Request $request): JsonResponse
     {
         return response()->json([
-            'content' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_PAGE_CONTENT, ''),
-            'meta_title' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_TITLE, ''),
+            'content'          => ContentManagerSetting::get(ContentManagerController::KEY_HOME_PAGE_CONTENT, ''),
+            'meta_title'       => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_TITLE, ''),
             'meta_description' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_DESCRIPTION, ''),
-            'meta_keywords' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_KEYWORDS, ''),
-            'focus_keyword' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_FOCUS_KEYWORD, ''),
-            'og_title' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_TITLE, ''),
-            'og_description' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_DESCRIPTION, ''),
-            'og_image' => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_IMAGE, ''),
+            'meta_keywords'    => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_KEYWORDS, ''),
+            'focus_keyword'    => ContentManagerSetting::get(ContentManagerController::KEY_HOME_FOCUS_KEYWORD, ''),
+            'og_title'         => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_TITLE, ''),
+            'og_description'   => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_DESCRIPTION, ''),
+            'og_image'         => ContentManagerSetting::get(ContentManagerController::KEY_HOME_OG_IMAGE, ''),
+            'meta_robots'      => ContentManagerSetting::get(ContentManagerController::KEY_HOME_META_ROBOTS, 'index,follow'),
+            'canonical_url'    => ContentManagerSetting::get(ContentManagerController::KEY_HOME_CANONICAL_URL, ''),
         ]);
     }
 

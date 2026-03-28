@@ -12,10 +12,11 @@ const userDropdownEl = ref(null);
 const page = usePage();
 const user = computed(() => page.props.auth?.user ?? {});
 
-/** Which nav panel to show: driven by current route. Home = dashboard only, Pencil = content only, SEO = seo.*, Gear = account (profile, users, roles). */
+/** Which nav panel to show: driven by current route. Home = dashboard only, Lock = credentials, Pencil = content only, SEO = seo.*, Gear = account (profile, users, roles). */
 const activeNavSection = computed(() => {
   const name = route().current() || '';
   if (name === 'dashboard') return 'dashboard';
+  if (name.startsWith('credentials')) return 'credentials';
   if (name.startsWith('content-manager') || name.startsWith('pages.') || name.startsWith('blogs.')) return 'content';
   if (name.startsWith('seo.')) return 'seo';
   if (name.startsWith('profile') || name.startsWith('users.') || name.startsWith('roles.')) return 'account';
@@ -23,20 +24,36 @@ const activeNavSection = computed(() => {
   return 'dashboard';
 });
 
-/** SEO modules for second sidebar (slug => display name). */
+/**
+ * SEO modules — ordered as an SEO person's step-by-step workflow.
+ *
+ * Step 1  Robots.txt Manager        → Allow/block crawler access
+ * Step 2  Indexing Controls         → Choose what pages to index
+ * Step 3  Sitemap Manager           → Submit pages to search engines
+ * Step 4  Meta Manager              → Write title & description per page
+ * Step 5  URL & Redirect Manager    → Fix URLs, set up redirects
+ * Step 6  Content Optimization      → Optimise copy & keywords
+ * Step 7  Image SEO Manager         → Add alt text, compress images
+ * Step 8  Schema Markup Manager     → Add structured data / rich results
+ * Step 9  Social Sharing (OG)       → Set Open Graph for social previews
+ * Step 10 Performance & Speed       → Improve Core Web Vitals / page speed
+ * Step 11 Broken Link & Error Mon.  → Find and fix crawl errors
+ * Step 12 SEO Analytics & Reports   → Measure rankings and traffic
+ */
 const seoModules = [
-  { slug: 'meta-manager', name: 'Meta Manager' },
-  { slug: 'url-redirects', name: 'URL & Redirect Manager' },
-  { slug: 'sitemap', name: 'Sitemap Manager' },
-  { slug: 'robots', name: 'Robots.txt Manager' },
-  { slug: 'social-sharing', name: 'Social Sharing (Open Graph)' },
-  { slug: 'schema-markup', name: 'Schema Markup Manager' },
-  { slug: 'image-seo', name: 'Image SEO Manager' },
-  { slug: 'performance', name: 'Performance & Speed' },
-  { slug: 'indexing', name: 'Indexing Controls' },
-  { slug: 'analytics', name: 'SEO Analytics & Reports' },
-  { slug: 'content-optimization', name: 'Content Optimization Tools' },
-  { slug: 'broken-links', name: 'Broken Link & Error Monitor' },
+  { slug: 'home-page',            name: '0. Home Page SEO' },
+  { slug: 'robots',               name: '1. Robots.txt Manager' },
+  { slug: 'indexing',             name: '2. Indexing Controls' },
+  { slug: 'sitemap',              name: '3. Sitemap Manager' },
+  { slug: 'meta-manager',         name: '4. Meta Manager' },
+  { slug: 'url-redirects',        name: '5. URL & Redirect Manager' },
+  { slug: 'content-optimization', name: '6. Content Optimization Tools' },
+  { slug: 'image-seo',            name: '7. Image SEO Manager' },
+  { slug: 'schema-markup',        name: '8. Schema Markup Manager' },
+  { slug: 'social-sharing',       name: '9. Social Sharing (Open Graph)' },
+  { slug: 'performance',          name: '10. Performance & Speed' },
+  { slug: 'broken-links',         name: '11. Broken Link & Error Monitor' },
+  { slug: 'analytics',            name: '12. SEO Analytics & Reports' },
 ];
 
 /** Which SEO sub-module is active: Meta Manager list and create/edit both count as "meta-manager". */
@@ -47,10 +64,11 @@ const activeSeoModule = computed(() => {
   return match ? match[1] : '';
 });
 
-/** Section title for the main header (Dashboard | Content manager | Media library | SEO | Account). */
+/** Section title for the main header (Dashboard | Credentials | Content manager | Media library | SEO | Account). */
 const sectionTitle = computed(() => {
   const s = activeNavSection.value;
   if (s === 'dashboard') return 'Dashboard';
+  if (s === 'credentials') return 'Credentials';
   if (s === 'content') return 'Content manager';
   if (s === 'media') return 'Media library';
   if (s === 'seo') return 'SEO';
@@ -103,6 +121,18 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
     <!-- Narrow icon sidebar (Strapi-style left bar) -->
     <aside class="admin-icon-sidebar" :class="{ 'is-open': sidebarOpen }">
       <nav class="admin-icon-sidebar-nav" aria-label="Main">
+        <Link
+          :href="route('credentials.index')"
+          class="admin-icon-sidebar-item"
+          :class="{ 'is-active': activeNavSection === 'credentials' }"
+          title="Credential management"
+          @click="closeSidebar"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+        </Link>
         <Link
           :href="route('dashboard')"
           class="admin-icon-sidebar-item"
@@ -195,6 +225,17 @@ onUnmounted(() => document.removeEventListener('click', onDocumentClick));
             @click="closeSidebar"
           >
             Dashboard
+          </Link>
+        </template>
+        <!-- Lock icon: Credential management -->
+        <template v-else-if="activeNavSection === 'credentials'">
+          <Link
+            :href="route('credentials.index')"
+            class="admin-nav-sidebar-link"
+            :class="{ 'is-active': route().current('credentials.index') }"
+            @click="closeSidebar"
+          >
+            Credential management
           </Link>
         </template>
         <!-- Pencil icon: Content manager (Home page + children: FAQ, Use cards; then Contact, Terms, Pages, Blogs) -->

@@ -15,6 +15,8 @@ const props = defineProps({
   homeOgTitle: { type: String, default: '' },
   homeOgDescription: { type: String, default: '' },
   homeOgImage: { type: String, default: '' },
+  homeMetaRobots: { type: String, default: 'index,follow' },
+  homeCanonicalUrl: { type: String, default: '' },
   flash: { type: Object, default: () => ({}) },
 });
 
@@ -23,13 +25,15 @@ const form = useForm({
 });
 
 const seoForm = useForm({
-  meta_title: props.homeMetaTitle,
+  meta_title:       props.homeMetaTitle,
   meta_description: props.homeMetaDescription,
-  meta_keywords: props.homeMetaKeywords,
-  focus_keyword: props.homeFocusKeyword,
-  og_title: props.homeOgTitle,
-  og_description: props.homeOgDescription,
-  og_image: props.homeOgImage,
+  meta_keywords:    props.homeMetaKeywords,
+  focus_keyword:    props.homeFocusKeyword,
+  og_title:         props.homeOgTitle,
+  og_description:   props.homeOgDescription,
+  og_image:         props.homeOgImage,
+  meta_robots:      props.homeMetaRobots || 'index,follow',
+  canonical_url:    props.homeCanonicalUrl,
 });
 
 watch(() => props.homePageContent, (val) => {
@@ -42,6 +46,8 @@ watch(() => props.homeFocusKeyword, (val) => { seoForm.focus_keyword = val ?? ''
 watch(() => props.homeOgTitle, (val) => { seoForm.og_title = val ?? ''; });
 watch(() => props.homeOgDescription, (val) => { seoForm.og_description = val ?? ''; });
 watch(() => props.homeOgImage, (val) => { seoForm.og_image = val ?? ''; });
+watch(() => props.homeMetaRobots, (val) => { seoForm.meta_robots = val ?? 'index,follow'; });
+watch(() => props.homeCanonicalUrl, (val) => { seoForm.canonical_url = val ?? ''; });
 
 function submit() {
   form.clearErrors();
@@ -116,10 +122,25 @@ function submitSeo() {
           <textarea v-model="seoForm.og_description" class="form-control form-control-sm" rows="2" placeholder="Defaults to meta description" maxlength="500"></textarea>
           <InputError :message="seoForm.errors.og_description" />
         </div>
-        <div class="mb-3">
+        <div class="mb-2">
           <label class="form-label small fw-semibold">Open Graph image URL</label>
           <input v-model="seoForm.og_image" type="url" class="form-control form-control-sm" placeholder="https://… (optional)" />
           <InputError :message="seoForm.errors.og_image" />
+        </div>
+        <div class="mb-2">
+          <label class="form-label small fw-semibold">Robots directive</label>
+          <select v-model="seoForm.meta_robots" class="form-select form-select-sm" style="max-width: 22rem;">
+            <option value="index,follow">index, follow (default)</option>
+            <option value="index,nofollow">index, nofollow</option>
+            <option value="noindex,follow">noindex, follow</option>
+            <option value="noindex,nofollow">noindex, nofollow</option>
+          </select>
+          <InputError :message="seoForm.errors.meta_robots" />
+        </div>
+        <div class="mb-3">
+          <label class="form-label small fw-semibold">Canonical URL</label>
+          <input v-model="seoForm.canonical_url" type="text" class="form-control form-control-sm" placeholder="https://compresspdf.id/ (leave blank to auto-set)" maxlength="500" />
+          <InputError :message="seoForm.errors.canonical_url" />
         </div>
         <PrimaryButton type="button" class="btn btn-primary btn-sm" :disabled="seoForm.processing" @click="submitSeo">
           Save meta tags &amp; SEO

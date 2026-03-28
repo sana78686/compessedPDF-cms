@@ -6,6 +6,7 @@ use App\Http\Controllers\FaqSectionController;
 use App\Http\Controllers\CardsSectionController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Seo\HomePageSeoController;
 use App\Http\Controllers\Seo\IndexingController;
 use App\Http\Controllers\Seo\MetaManagerController;
 use App\Http\Controllers\Seo\SitemapManagerController;
@@ -18,20 +19,16 @@ use App\Http\Controllers\Seo\BrokenLinksController;
 use App\Http\Controllers\Seo\ContentOptimizationController;
 use App\Http\Controllers\Seo\PerformanceController;
 use App\Http\Controllers\Seo\UrlRedirectsController;
+use App\Http\Controllers\CredentialController;
 use App\Http\Controllers\RobotsTxtController;
 use App\Http\Controllers\SitemapController;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-    ]);
+    return auth()->check()
+        ? redirect()->route('dashboard')
+        : redirect()->route('login');
 });
 
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
@@ -40,6 +37,15 @@ Route::get('/robots.txt', RobotsTxtController::class)->name('robots');
 Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::middleware(['auth', 'verified'])->prefix('credentials')->name('credentials.')->group(function () {
+    Route::get('/', [CredentialController::class, 'index'])->name('index');
+    Route::get('/create', [CredentialController::class, 'create'])->name('create');
+    Route::post('/', [CredentialController::class, 'store'])->name('store');
+    Route::get('/{credential}/edit', [CredentialController::class, 'edit'])->name('edit');
+    Route::put('/{credential}', [CredentialController::class, 'update'])->name('update');
+    Route::delete('/{credential}', [CredentialController::class, 'destroy'])->name('destroy');
+});
 
 Route::middleware(['auth', 'verified'])->prefix('content-manager')->name('content-manager.')->group(function () {
     Route::get('/', [ContentManagerController::class, 'index'])->name('index');
@@ -74,6 +80,7 @@ Route::get('/media', function () {
 })->middleware(['auth', 'verified'])->name('media.index');
 
 Route::middleware(['auth', 'verified'])->prefix('seo')->name('seo.')->group(function () {
+    Route::get('/home-page', [HomePageSeoController::class, 'index'])->name('home-page');
     Route::get('/meta-manager', [MetaManagerController::class, 'index'])->name('meta-manager');
     Route::get('/meta-manager/create', [MetaManagerController::class, 'create'])->name('meta-manager.create');
     Route::get('/url-redirects', [UrlRedirectsController::class, 'index'])->name('url-redirects');

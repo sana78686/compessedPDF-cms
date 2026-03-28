@@ -20,6 +20,8 @@ class ContentManagerController extends Controller
     public const KEY_HOME_OG_TITLE = 'home_og_title';
     public const KEY_HOME_OG_DESCRIPTION = 'home_og_description';
     public const KEY_HOME_OG_IMAGE = 'home_og_image';
+    public const KEY_HOME_META_ROBOTS = 'home_meta_robots';
+    public const KEY_HOME_CANONICAL_URL = 'home_canonical_url';
     public const KEY_CONTACT_EMAIL = 'contact_email';
     public const KEY_CONTACT_PHONE = 'contact_phone';
     public const KEY_CONTACT_ADDRESS = 'contact_address';
@@ -52,29 +54,38 @@ class ContentManagerController extends Controller
             'homeOgTitle' => ContentManagerSetting::get(self::KEY_HOME_OG_TITLE, ''),
             'homeOgDescription' => ContentManagerSetting::get(self::KEY_HOME_OG_DESCRIPTION, ''),
             'homeOgImage' => ContentManagerSetting::get(self::KEY_HOME_OG_IMAGE, ''),
+            'homeMetaRobots' => ContentManagerSetting::get(self::KEY_HOME_META_ROBOTS, 'index,follow'),
+            'homeCanonicalUrl' => ContentManagerSetting::get(self::KEY_HOME_CANONICAL_URL, ''),
             'flash' => ['success' => session('success')],
         ]);
     }
 
-    /** Update home page meta tags & SEO only (used by Content Manager Home page). */
+    /** Update home page meta tags & SEO only (used by Content Manager and SEO > Home Page). */
     public function homeSeoUpdate(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'meta_title' => 'nullable|string|max:255',
+            'meta_title'       => 'nullable|string|max:255',
             'meta_description' => 'nullable|string|max:500',
-            'meta_keywords' => 'nullable|string|max:255',
-            'focus_keyword' => 'nullable|string|max:255',
-            'og_title' => 'nullable|string|max:255',
-            'og_description' => 'nullable|string|max:500',
-            'og_image' => 'nullable|string|max:2048',
+            'meta_keywords'    => 'nullable|string|max:255',
+            'focus_keyword'    => 'nullable|string|max:255',
+            'og_title'         => 'nullable|string|max:255',
+            'og_description'   => 'nullable|string|max:500',
+            'og_image'         => 'nullable|string|max:2048',
+            'meta_robots'      => ['nullable', 'string', \Illuminate\Validation\Rule::in([
+                'index,follow', 'index,nofollow', 'noindex,follow', 'noindex,nofollow',
+            ])],
+            'canonical_url'    => 'nullable|string|max:500',
         ]);
-        ContentManagerSetting::set(self::KEY_HOME_META_TITLE, $validated['meta_title'] ?? '');
+
+        ContentManagerSetting::set(self::KEY_HOME_META_TITLE,       $validated['meta_title']       ?? '');
         ContentManagerSetting::set(self::KEY_HOME_META_DESCRIPTION, $validated['meta_description'] ?? '');
-        ContentManagerSetting::set(self::KEY_HOME_META_KEYWORDS, $validated['meta_keywords'] ?? '');
-        ContentManagerSetting::set(self::KEY_HOME_FOCUS_KEYWORD, $validated['focus_keyword'] ?? '');
-        ContentManagerSetting::set(self::KEY_HOME_OG_TITLE, $validated['og_title'] ?? '');
-        ContentManagerSetting::set(self::KEY_HOME_OG_DESCRIPTION, $validated['og_description'] ?? '');
-        ContentManagerSetting::set(self::KEY_HOME_OG_IMAGE, $validated['og_image'] ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_META_KEYWORDS,    $validated['meta_keywords']    ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_FOCUS_KEYWORD,    $validated['focus_keyword']    ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_OG_TITLE,         $validated['og_title']         ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_OG_DESCRIPTION,   $validated['og_description']   ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_OG_IMAGE,         $validated['og_image']         ?? '');
+        ContentManagerSetting::set(self::KEY_HOME_META_ROBOTS,      $validated['meta_robots']      ?? 'index,follow');
+        ContentManagerSetting::set(self::KEY_HOME_CANONICAL_URL,    $validated['canonical_url']    ?? '');
 
         return back()->with('success', 'Home page meta tags & SEO saved.');
     }
