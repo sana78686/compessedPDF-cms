@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Blog extends Model
 {
+    protected $connection = 'tenant';
+{
     protected $fillable = [
         'title',
         'slug',

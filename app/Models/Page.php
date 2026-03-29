@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Page extends Model
 {
+    protected $connection = 'tenant';
+{
     protected $fillable = [
         'parent_id',
         'title',

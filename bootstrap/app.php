@@ -15,6 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         apiPrefix: 'api',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // TenantMiddleware runs on every request (web + api) to switch the
+        // `tenant` DB connection based on active domain session or X-Domain header.
+        $middleware->prepend(\App\Http\Middleware\TenantMiddleware::class);
+
         $middleware->web(append: [
             \App\Http\Middleware\ApplyRedirects::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
@@ -27,7 +31,11 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->renderable(function (NotFoundHttpException $e, Request $request) {
-            \App\Models\BrokenLinkLog::log404($request->path(), $request->header('referer'));
+            try {
+                \App\Models\BrokenLinkLog::log404($request->path(), $request->header('referer'));
+            } catch (\Throwable $ignored) {
+                // Table may not exist yet on fresh deployment
+            }
             return null;
         });
     })->create();
